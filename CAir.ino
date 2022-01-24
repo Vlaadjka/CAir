@@ -6,6 +6,12 @@
 #define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8))
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> display(GxEPD2_154_D67(/*CS=*/ 15, /*DC=*/ 27, /*RST=26*/ 26, /*BUSY=*/ 25));
 
+#include "DHT.h"
+
+#define DHTPIN 5
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
 #define BAUDRATE 9600
 
 void setupDisplay()
@@ -17,12 +23,19 @@ void setupDisplay()
   Serial.println("Display ready");
 }
 
+void setupHumidityTempSensor()
+{
+  dht.begin();
+}
+
 void setup()
 {
   Serial.begin(BAUDRATE);
   
   setupDisplay();
   drawLowBattery();
+
+  setupHumidityTempSensor();
 }
 
 void drawLowBattery()
@@ -36,7 +49,23 @@ void drawLowBattery()
   while (display.nextPage());
 }
 
+float getHumidity()
+{
+  float humidity = dht.readHumidity();
+  Serial.println("Humidity: " + String(humidity));
+  return humidity;
+}
+
+float getTemperature()
+{
+  float temperature = dht.readTemperature();
+  Serial.println("Temperature: " + String(temperature));
+  return temperature;
+}
+
 void loop()
 {
-
+  getHumidity();
+  getTemperature();
+  delay(2000);
 }

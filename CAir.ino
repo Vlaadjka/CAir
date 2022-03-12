@@ -58,7 +58,7 @@ int co2_get_measurement()
   co2_write_request();
   if (co2_read_response() != READ_ERROR)
   {
-    Serial.println();
+    Serial.println("CO2 Response: ");
     for (int i = 0; i < 7; i++) {
       Serial.print(co2Response[i], HEX);
       Serial.print(" ");    
@@ -147,7 +147,7 @@ void loop()
   // 10 second warmup
   delay(10000);
   int co2 = co2_get_measurement();
-  Serial.println("CO2: " + String(co2));  
+  Serial.println("CO2 measurement: " + String(co2));  
   co2_power_off();
   
   delay(5000);

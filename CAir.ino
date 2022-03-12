@@ -1,6 +1,7 @@
 #include "icons/lowBattery200x200.h"
 
 #include <GxEPD2_BW.h>
+#include "fonts/BebasNeueRegular60pt7b.h"
 
 #define MAX_DISPLAY_BUFFER_SIZE 800
 #define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8))
@@ -114,6 +115,41 @@ void co2_power_off()
   Serial.println("CO2 Power OFF");
 }
 
+void draw_co2(int co2)
+{ 
+  char str_co2[4];
+  char co2Text[5];
+  dtostrf(co2, 4, 0, str_co2);
+  snprintf(co2Text, sizeof(co2Text), "%s", str_co2);
+
+  uint16_t x, y, w, h;
+  int16_t x1, y1;
+
+  display.setFont(&BebasNeueRegular60pt7b);
+  display.getTextBounds(co2Text, 0, 0, &x1, &y1, &w, &h);
+  x = (display.width() - w) / 2 - x1;
+  y = 70 + h;
+
+  display.setFullWindow();
+  display.firstPage();
+  do
+  {
+    display.fillScreen(GxEPD_WHITE);
+
+    if (co2 > 1400)
+    {
+      display.setTextColor(GxEPD_WHITE);
+      display.fillRect(0, 60, 200, 25+h, GxEPD_BLACK);
+    } else {
+      display.setTextColor(GxEPD_BLACK);
+    }
+
+    display.setCursor(x, y);
+    display.print(co2Text);
+  }
+  while (display.nextPage());
+}
+
 void setup()
 {
   Serial.begin(9600);
@@ -124,8 +160,6 @@ void setup()
   SPI.begin(13, 12, 14, 15); // map and init SPI pins SCK(13), MISO(12), MOSI(14), SS(15)
   display.setRotation(1); // Display is installed upside down
   Serial.println("Display ready");
-  
-  draw_low_battery();
 
   // DHT
   dht.begin();
@@ -147,8 +181,9 @@ void loop()
   // 10 second warmup
   delay(10000);
   int co2 = co2_get_measurement();
-  Serial.println("CO2 measurement: " + String(co2));  
+  Serial.println("CO2 measurement: " + String(co2));
+  draw_co2(co2);
   co2_power_off();
   
-  delay(5000);
+  delay(20000);
 }

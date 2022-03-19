@@ -116,19 +116,21 @@ void co2_power_off()
   Serial.println("CO2 Power OFF");
 }
 
-void draw_data(int co2, float temp)
+void draw_data(int co2, float temp, float humidity)
 { 
-  char str_co2[5], str_temp[5];
-  char co2Text[5], tempText[5];  
+  char str_co2[5], str_temp[5], str_humidity[3];
+  char co2Text[5], tempText[5], humidityText[4];
 
-  String(co2).toCharArray(str_co2, sizeof(str_co2));  
+  String(co2).toCharArray(str_co2, sizeof(str_co2));
   String(temp).toCharArray(str_temp, sizeof(str_temp));
+  String(humidity).toCharArray(str_humidity, sizeof(str_humidity));
 
   snprintf(co2Text, sizeof(co2Text), "%s", str_co2);
-  snprintf(tempText, sizeof(tempText), "%s", str_temp);   
+  snprintf(tempText, sizeof(tempText), "%s", str_temp);
+  snprintf(humidityText, sizeof(humidityText), "%s%%", str_humidity);
 
-  uint16_t x, y, w, h, tw, th;
-  int16_t xc, yc, xt, yt;
+  uint16_t x, y, w, h, tw, th, hw, hh;
+  int16_t xc, yc, xt, yt, xh, yh;
 
   display.setFont(&BebasNeueRegular60pt7b);
   display.getTextBounds(co2Text, 0, 0, &xc, &yc, &w, &h);
@@ -136,7 +138,8 @@ void draw_data(int co2, float temp)
   y = 70 + h; 
 
   display.setFont(&BebasNeueRegular22pt7b);
-  display.getTextBounds(tempText, 0, 0, &xt, &yt, &tw, &th); 
+  display.getTextBounds(tempText, 0, 0, &xt, &yt, &tw, &th);
+  display.getTextBounds(humidityText, 0, 0, &xh, &yh, &hw, &hh);
 
   display.setFullWindow();
   display.firstPage();
@@ -148,6 +151,9 @@ void draw_data(int co2, float temp)
     display.setFont(&BebasNeueRegular22pt7b);
     display.setCursor(0, th + 8);
     display.print(tempText);
+
+    display.setCursor(190 - hw, hh + 8);
+    display.print(humidityText);
 
     if (co2 > 1400)
     {
@@ -196,7 +202,7 @@ void loop()
   co2_power_off();
   Serial.println("CO2 measurement: " + String(co2));
 
-  draw_data(co2, temp);
+  draw_data(co2, temp, humidity);
 
   delay(20000);
 }

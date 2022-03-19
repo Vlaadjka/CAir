@@ -117,6 +117,7 @@ void co2_power_on()
   delay(50);
   rtc_gpio_hold_en(CO2_POWER_PIN);
   Serial.println("CO2 Power ON");
+  co2Serial.begin(9600, SERIAL_8N1, CO2_RX_PIN, CO2_TX_PIN);
 }
 
 void co2_power_off()
@@ -204,10 +205,9 @@ void setup()
   // DHT
   dht.begin();
 
-  // CO2
+  // CO2 Power pin setup
   ledcSetup(CO2_POWER_PIN_CH, CO2_POWER_PIN_FREQ, CO2_POWER_PIN_CH_RES);
   ledcAttachPin(CO2_POWER_PIN, CO2_POWER_PIN_CH);
-  co2Serial.begin(9600, SERIAL_8N1, CO2_RX_PIN, CO2_TX_PIN);
 }
 
 void deep_sleep(int seconds)

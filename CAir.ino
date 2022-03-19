@@ -2,6 +2,7 @@
 
 #include <GxEPD2_BW.h>
 #include "fonts/BebasNeueRegular60pt7b.h"
+#include "fonts/BebasNeueRegular22pt7b.h"
 
 #define MAX_DISPLAY_BUFFER_SIZE 800
 #define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8))
@@ -115,20 +116,27 @@ void co2_power_off()
   Serial.println("CO2 Power OFF");
 }
 
-void draw_co2(int co2)
+void draw_data(int co2, float temp)
 { 
-  char str_co2[4];
-  char co2Text[5];
-  dtostrf(co2, 4, 0, str_co2);
-  snprintf(co2Text, sizeof(co2Text), "%s", str_co2);
+  char str_co2[5], str_temp[5];
+  char co2Text[5], tempText[5];  
 
-  uint16_t x, y, w, h;
-  int16_t x1, y1;
+  String(co2).toCharArray(str_co2, sizeof(str_co2));  
+  String(temp).toCharArray(str_temp, sizeof(str_temp));
+
+  snprintf(co2Text, sizeof(co2Text), "%s", str_co2);
+  snprintf(tempText, sizeof(tempText), "%s", str_temp);   
+
+  uint16_t x, y, w, h, tw, th;
+  int16_t xc, yc, xt, yt;
 
   display.setFont(&BebasNeueRegular60pt7b);
-  display.getTextBounds(co2Text, 0, 0, &x1, &y1, &w, &h);
-  x = (display.width() - w) / 2 - x1;
-  y = 70 + h;
+  display.getTextBounds(co2Text, 0, 0, &xc, &yc, &w, &h);
+  x = (display.width() - w) / 2 - xc;
+  y = 70 + h; 
+
+  display.setFont(&BebasNeueRegular22pt7b);
+  display.getTextBounds(tempText, 0, 0, &xt, &yt, &tw, &th); 
 
   display.setFullWindow();
   display.firstPage();
@@ -136,14 +144,18 @@ void draw_co2(int co2)
   {
     display.fillScreen(GxEPD_WHITE);
 
+    display.setTextColor(GxEPD_BLACK);
+    display.setFont(&BebasNeueRegular22pt7b);
+    display.setCursor(0, th + 8);
+    display.print(tempText);
+
     if (co2 > 1400)
     {
       display.setTextColor(GxEPD_WHITE);
-      display.fillRect(0, 60, 200, 25+h, GxEPD_BLACK);
-    } else {
-      display.setTextColor(GxEPD_BLACK);
+      display.fillRect(0, 60, 200, 25 + h, GxEPD_BLACK);
     }
 
+    display.setFont(&BebasNeueRegular60pt7b);
     display.setCursor(x, y);
     display.print(co2Text);
   }
@@ -173,17 +185,18 @@ void setup()
 void loop()
 {
   delay(50);
-  get_humidity();
+  float humidity = get_humidity();
   delay(50);
-  get_temperature();
+  float temp = get_temperature();
   
   co2_power_on();
   // 10 second warmup
   delay(10000);
   int co2 = co2_get_measurement();
-  Serial.println("CO2 measurement: " + String(co2));
-  draw_co2(co2);
   co2_power_off();
-  
+  Serial.println("CO2 measurement: " + String(co2));
+
+  draw_data(co2, temp);
+
   delay(20000);
 }

@@ -3,6 +3,7 @@
 #include <GxEPD2_BW.h>
 #include "fonts/BebasNeueRegular60pt7b.h"
 #include "fonts/BebasNeueRegular22pt7b.h"
+#include "fonts/BebasNeueRegular14pt7b.h"
 #include "icons/humidity20x30.h"
 
 #define MAX_DISPLAY_BUFFER_SIZE 800
@@ -18,6 +19,9 @@ const int CO2_POWER_PIN = GPIO_NUM_26;
 const int CO2_POWER_PIN_FREQ = 5000;
 const int CO2_POWER_PIN_CH = 0;
 const int CO2_POWER_PIN_CH_RES = 8;
+
+const int VOLTAGE_PIN = GPIO_NUM_35;
+const float VOLTAGE_DIVIDER_CONSTANT = 0.001755;
 
 HardwareSerial co2Serial(1);
 
@@ -117,18 +121,20 @@ void co2_power_off()
   Serial.println("CO2 Power OFF");
 }
 
-void draw_data(int co2, float temp, float humidity)
+void draw_data(int co2, float temp, float humidity, float voltage)
 { 
-  char str_co2[5], str_temp[5], str_humidity[3];
-  char co2Text[5], tempText[7], humidityText[3];
+  char str_co2[5], str_temp[5], str_humidity[3], str_voltage[4];
+  char co2Text[5], tempText[7], humidityText[3], voltageText[5];
 
   String(co2).toCharArray(str_co2, sizeof(str_co2));
   String(temp).toCharArray(str_temp, sizeof(str_temp));
   String(humidity).toCharArray(str_humidity, sizeof(str_humidity));
+  String(voltage).toCharArray(str_voltage, sizeof(str_voltage));
 
   snprintf(co2Text, sizeof(co2Text), "%s", str_co2);
   snprintf(tempText, sizeof(tempText), "%s C", str_temp);
   snprintf(humidityText, sizeof(humidityText), "%s", str_humidity);
+  snprintf(voltageText, sizeof(voltageText), "%sV", str_voltage);
 
   uint16_t x, y, w, h, tw, th, hw, hh;
   int16_t xc, yc, xt, yt, xh, yh;
@@ -159,6 +165,10 @@ void draw_data(int co2, float temp, float humidity)
     display.setCursor(170 - hw, hh + 8);
     display.print(humidityText);
     display.drawInvertedBitmap(175, 9, humidityBitmap, 20, 30, GxEPD_BLACK);
+
+    display.setFont(&BebasNeueRegular14pt7b);
+    display.setCursor(155, 200);
+    display.print(voltageText);
 
     if (co2 > 1400)
     {
@@ -195,6 +205,10 @@ void setup()
 
 void loop()
 {
+  int votagePinValue = analogRead(VOLTAGE_PIN);
+  float voltage = votagePinValue * VOLTAGE_DIVIDER_CONSTANT;
+  Serial.println("Voltage: " + String(voltage));
+
   delay(50);
   float humidity = get_humidity();
   delay(50);
@@ -207,7 +221,7 @@ void loop()
   co2_power_off();
   Serial.println("CO2 measurement: " + String(co2));
 
-  draw_data(co2, temp, humidity);
+  draw_data(co2, temp, humidity, voltage);
 
   delay(20000);
 }

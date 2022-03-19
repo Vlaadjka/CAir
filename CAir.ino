@@ -6,6 +6,8 @@
 #include "fonts/BebasNeueRegular14pt7b.h"
 #include "icons/humidity20x30.h"
 
+#include "driver/rtc_io.h"
+
 #define MAX_DISPLAY_BUFFER_SIZE 800
 #define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8))
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> display(GxEPD2_154_D67(/*CS=*/ 15, /*DC=*/ 27, /*RST=26*/ 26, /*BUSY=*/ 25));
@@ -15,7 +17,7 @@ DHT dht(GPIO_NUM_5, DHT22);
 
 const int CO2_RX_PIN = GPIO_NUM_16;
 const int CO2_TX_PIN = GPIO_NUM_17;
-const int CO2_POWER_PIN = GPIO_NUM_26;
+const gpio_num_t CO2_POWER_PIN = GPIO_NUM_26;
 const int CO2_POWER_PIN_FREQ = 5000;
 const int CO2_POWER_PIN_CH = 0;
 const int CO2_POWER_PIN_CH_RES = 8;
@@ -109,15 +111,19 @@ float get_temperature()
 
 void co2_power_on()
 {
+  rtc_gpio_hold_dis(CO2_POWER_PIN);
   ledcWrite(CO2_POWER_PIN_CH, 255);
   delay(50);
+  rtc_gpio_hold_en(CO2_POWER_PIN);
   Serial.println("CO2 Power ON");
 }
 
 void co2_power_off()
 {
+  rtc_gpio_hold_dis(CO2_POWER_PIN);
   ledcWrite(CO2_POWER_PIN_CH, 0);
   delay(50);
+  rtc_gpio_hold_en(CO2_POWER_PIN);
   Serial.println("CO2 Power OFF");
 }
 
@@ -203,6 +209,14 @@ void setup()
   co2Serial.begin(9600, SERIAL_8N1, CO2_RX_PIN, CO2_TX_PIN);
 }
 
+void deep_sleep(int seconds)
+{
+  esp_sleep_enable_timer_wakeup(seconds * 1000000);
+  esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
+  Serial.println("Going to deep sleep for " + String(seconds) + " seconds"); 
+  esp_deep_sleep_start();
+}
+
 void loop()
 {
   int votagePinValue = analogRead(VOLTAGE_PIN);
@@ -223,5 +237,5 @@ void loop()
 
   draw_data(co2, temp, humidity, voltage);
 
-  delay(20000);
+  deep_sleep(30);
 }

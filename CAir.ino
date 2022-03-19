@@ -24,6 +24,7 @@ const int CO2_POWER_PIN_CH_RES = 8;
 
 const int VOLTAGE_PIN = GPIO_NUM_35;
 const float VOLTAGE_DIVIDER_CONSTANT = 0.001755;
+const float VOLTAGE_LOW = 3.5;
 
 HardwareSerial co2Serial(1);
 
@@ -222,6 +223,12 @@ void loop()
   int votagePinValue = analogRead(VOLTAGE_PIN);
   float voltage = votagePinValue * VOLTAGE_DIVIDER_CONSTANT;
   Serial.println("Voltage: " + String(voltage));
+
+  if (voltage <= VOLTAGE_LOW)
+  {
+    draw_low_battery();
+    deep_sleep(300);
+  }
 
   delay(50);
   float humidity = get_humidity();

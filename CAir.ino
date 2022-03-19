@@ -130,8 +130,8 @@ void co2_power_off()
 
 void draw_data(int co2, float temp, float humidity, float voltage)
 { 
-  char str_co2[5], str_temp[5], str_humidity[3], str_voltage[4];
-  char co2Text[5], tempText[7], humidityText[3], voltageText[5];
+  char str_co2[5], str_temp[5], str_humidity[3], str_voltage[5];
+  char co2Text[5], tempText[7], humidityText[3], voltageText[6];
 
   String(co2).toCharArray(str_co2, sizeof(str_co2));
   String(temp).toCharArray(str_temp, sizeof(str_temp));
@@ -174,7 +174,7 @@ void draw_data(int co2, float temp, float humidity, float voltage)
     display.drawInvertedBitmap(175, 9, humidityBitmap, 20, 30, GxEPD_BLACK);
 
     display.setFont(&BebasNeueRegular14pt7b);
-    display.setCursor(155, 200);
+    display.setCursor(145, 200);
     display.print(voltageText);
 
     if (co2 > 1400)

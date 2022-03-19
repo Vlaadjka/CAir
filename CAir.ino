@@ -120,14 +120,14 @@ void co2_power_off()
 void draw_data(int co2, float temp, float humidity)
 { 
   char str_co2[5], str_temp[5], str_humidity[3];
-  char co2Text[5], tempText[5], humidityText[3];
+  char co2Text[5], tempText[7], humidityText[3];
 
   String(co2).toCharArray(str_co2, sizeof(str_co2));
   String(temp).toCharArray(str_temp, sizeof(str_temp));
   String(humidity).toCharArray(str_humidity, sizeof(str_humidity));
 
   snprintf(co2Text, sizeof(co2Text), "%s", str_co2);
-  snprintf(tempText, sizeof(tempText), "%s", str_temp);
+  snprintf(tempText, sizeof(tempText), "%s C", str_temp);
   snprintf(humidityText, sizeof(humidityText), "%s", str_humidity);
 
   uint16_t x, y, w, h, tw, th, hw, hh;
@@ -152,8 +152,11 @@ void draw_data(int co2, float temp, float humidity)
     display.setFont(&BebasNeueRegular22pt7b);
     display.setCursor(0, th + 8);
     display.print(tempText);
+    display.drawCircle(62,13,4,GxEPD_BLACK);
+    display.drawCircle(62,13,3,GxEPD_BLACK);
+    display.drawCircle(62,13,2,GxEPD_BLACK);
 
-    display.setCursor(170 - hw, hh + 10);
+    display.setCursor(170 - hw, hh + 8);
     display.print(humidityText);
     display.drawInvertedBitmap(175, 9, humidityBitmap, 20, 30, GxEPD_BLACK);
 

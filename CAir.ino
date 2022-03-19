@@ -3,6 +3,7 @@
 #include <GxEPD2_BW.h>
 #include "fonts/BebasNeueRegular60pt7b.h"
 #include "fonts/BebasNeueRegular22pt7b.h"
+#include "icons/humidity20x30.h"
 
 #define MAX_DISPLAY_BUFFER_SIZE 800
 #define MAX_HEIGHT(EPD) (EPD::HEIGHT <= MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8) ? EPD::HEIGHT : MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 8))
@@ -119,7 +120,7 @@ void co2_power_off()
 void draw_data(int co2, float temp, float humidity)
 { 
   char str_co2[5], str_temp[5], str_humidity[3];
-  char co2Text[5], tempText[5], humidityText[4];
+  char co2Text[5], tempText[5], humidityText[3];
 
   String(co2).toCharArray(str_co2, sizeof(str_co2));
   String(temp).toCharArray(str_temp, sizeof(str_temp));
@@ -127,7 +128,7 @@ void draw_data(int co2, float temp, float humidity)
 
   snprintf(co2Text, sizeof(co2Text), "%s", str_co2);
   snprintf(tempText, sizeof(tempText), "%s", str_temp);
-  snprintf(humidityText, sizeof(humidityText), "%s%%", str_humidity);
+  snprintf(humidityText, sizeof(humidityText), "%s", str_humidity);
 
   uint16_t x, y, w, h, tw, th, hw, hh;
   int16_t xc, yc, xt, yt, xh, yh;
@@ -152,8 +153,9 @@ void draw_data(int co2, float temp, float humidity)
     display.setCursor(0, th + 8);
     display.print(tempText);
 
-    display.setCursor(190 - hw, hh + 8);
+    display.setCursor(170 - hw, hh + 10);
     display.print(humidityText);
+    display.drawInvertedBitmap(175, 9, humidityBitmap, 20, 30, GxEPD_BLACK);
 
     if (co2 > 1400)
     {
